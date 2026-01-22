@@ -20,6 +20,35 @@ function cleanDescription(text: string): string {
     .substring(0, 200);
 }
 
+async function fetchAllIncidentsForStats(supabase: ReturnType<typeof createServerClient>) {
+  const allIncidents: { num_affected: number | null; state: string | null }[] = [];
+  const pageSize = 1000;
+  let page = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data, error } = await supabase
+      .from('incidents')
+      .select('num_affected, state')
+      .range(page * pageSize, (page + 1) * pageSize - 1);
+
+    if (error) {
+      console.error('Error fetching incidents for stats:', error);
+      break;
+    }
+
+    if (data && data.length > 0) {
+      allIncidents.push(...data);
+      page++;
+      hasMore = data.length === pageSize;
+    } else {
+      hasMore = false;
+    }
+  }
+
+  return allIncidents;
+}
+
 export default async function HomePage() {
   const supabase = createServerClient();
 
@@ -32,14 +61,11 @@ export default async function HomePage() {
   const incidents = (data || []) as Incident[];
   const totalCount = count || 0;
 
-  // Get total affected from ALL incidents
-  const { data: allIncidents } = await supabase
-    .from('incidents')
-    .select('num_affected, state')
-    .limit(10000);
+  // Get total affected from ALL incidents using pagination
+  const allIncidents = await fetchAllIncidentsForStats(supabase);
 
-  const totalAffected = (allIncidents || []).reduce((sum, i) => sum + (i.num_affected || 0), 0);
-  const statesCount = new Set((allIncidents || []).map(i => i.state).filter(Boolean)).size;
+  const totalAffected = allIncidents.reduce((sum, i) => sum + (i.num_affected || 0), 0);
+  const statesCount = new Set(allIncidents.map(i => i.state).filter(Boolean)).size;
 
   return (
     <div className="min-h-screen bg-gray-50">
