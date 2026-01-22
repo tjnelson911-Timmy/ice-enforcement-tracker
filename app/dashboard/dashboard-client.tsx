@@ -297,28 +297,13 @@ export default function DashboardClient({ incidents, demographics }: DashboardCl
         </div>
 
         {/* Charts Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <IncidentsOverTime incidents={filteredIncidents} />
           <StateBreakdownChart incidents={filteredIncidents} />
-          <div className="space-y-4">
-            <DemographicsChart
-              demographics={filteredDemographics}
-              type="race"
-              title="Race/Ethnicity"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <DemographicsChart
             demographics={filteredDemographics}
-            type="gender"
-            title="Gender"
-          />
-          <DemographicsChart
-            demographics={filteredDemographics}
-            type="age_group"
-            title="Age Group"
+            type="race"
+            title="Race/Ethnicity"
           />
         </div>
       </div>
