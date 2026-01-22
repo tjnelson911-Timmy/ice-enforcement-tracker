@@ -172,7 +172,7 @@ export default function DashboardClient({ incidents, demographics }: DashboardCl
         {/* Filters */}
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Filters</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">
                 Type
@@ -275,8 +275,8 @@ export default function DashboardClient({ incidents, demographics }: DashboardCl
         </div>
 
         {/* Map and Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
-          <div className="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden" style={{ height: '500px', minHeight: '500px' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-4">
+          <div className="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden h-[350px] sm:h-[400px] lg:h-[500px]">
             <DashboardMaps
               incidents={filteredIncidents}
               selectedIncident={selectedIncident}
@@ -289,7 +289,7 @@ export default function DashboardClient({ incidents, demographics }: DashboardCl
         </div>
 
         {/* Timeline Player - Below Map */}
-        <div className="mb-6 lg:w-2/3">
+        <div className="mb-6 w-full lg:w-2/3">
           <TimelinePlayer
             incidents={baseFilteredIncidents}
             onDateChange={setTimelineDate}
