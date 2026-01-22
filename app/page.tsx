@@ -35,7 +35,8 @@ export default async function HomePage() {
   // Get total affected from ALL incidents
   const { data: allIncidents } = await supabase
     .from('incidents')
-    .select('num_affected, state');
+    .select('num_affected, state')
+    .limit(10000);
 
   const totalAffected = (allIncidents || []).reduce((sum, i) => sum + (i.num_affected || 0), 0);
   const statesCount = new Set((allIncidents || []).map(i => i.state).filter(Boolean)).size;

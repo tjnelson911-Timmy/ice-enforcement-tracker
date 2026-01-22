@@ -10,7 +10,8 @@ export default async function DashboardPage() {
   const { data: incidentsData, error: incidentsError } = await supabase
     .from('incidents')
     .select('*')
-    .order('incident_date', { ascending: false });
+    .order('incident_date', { ascending: false })
+    .limit(10000);
 
   const { data: demographicsData, error: demographicsError } = await supabase
     .from('incident_demographics')
