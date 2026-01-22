@@ -35,9 +35,10 @@ export default function IncidentMap({ incidents, selectedIncident, onSelectIncid
     })),
   };
 
-  const heatmapLayer = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const heatmapLayer: any = {
     id: 'incidents-heat',
-    type: 'heatmap' as const,
+    type: 'heatmap',
     paint: {
       'heatmap-weight': ['interpolate', ['linear'], ['get', 'affected'], 0, 0, 50, 1],
       'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 1, 9, 3],
