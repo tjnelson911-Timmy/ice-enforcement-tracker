@@ -1,17 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function UpdateStatsButton() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string; details?: string } | null>(null);
+  const [lastAutoUpdate, setLastAutoUpdate] = useState<Date | null>(null);
   const router = useRouter();
 
-  const handleUpdate = async () => {
+  const runUpdate = useCallback(async (isAuto: boolean = false) => {
+    if (isUpdating) return; // Prevent concurrent updates
+
     setIsUpdating(true);
-    setResult(null);
+    if (!isAuto) setResult(null);
 
     let totalIncidents = 0;
     let totalArticles = 0;
@@ -40,29 +43,47 @@ export default function UpdateStatsButton() {
         errors.push(`NewsAPI: ${newsapiData.error || 'Failed'}`);
       }
 
-      if (totalIncidents > 0 || errors.length === 0) {
-        setResult({
-          success: true,
-          message: `Found ${totalArticles} articles, added ${totalIncidents} new incidents`,
-          details: errors.length > 0 ? errors.join('; ') : undefined,
-        });
-      } else {
-        setResult({
-          success: false,
-          message: errors.join('; ') || 'Failed to fetch news',
-        });
+      if (!isAuto) {
+        if (totalIncidents > 0 || errors.length === 0) {
+          setResult({
+            success: true,
+            message: `Found ${totalArticles} articles, added ${totalIncidents} new incidents`,
+            details: errors.length > 0 ? errors.join('; ') : undefined,
+          });
+        } else {
+          setResult({
+            success: false,
+            message: errors.join('; ') || 'Failed to fetch news',
+          });
+        }
       }
 
+      setLastAutoUpdate(new Date());
       // Refresh the page data
       router.refresh();
     } catch (error) {
-      setResult({
-        success: false,
-        message: 'Network error occurred',
-      });
+      if (!isAuto) {
+        setResult({
+          success: false,
+          message: 'Network error occurred',
+        });
+      }
     } finally {
       setIsUpdating(false);
     }
+  }, [isUpdating, router]);
+
+  // Auto-update every 5 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      runUpdate(true);
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [runUpdate]);
+
+  const handleUpdate = async () => {
+    runUpdate(false);
   };
 
   return (
