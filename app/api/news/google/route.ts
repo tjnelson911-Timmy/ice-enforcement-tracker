@@ -42,6 +42,145 @@ interface ParsedIncident {
   source_name: string;
 }
 
+interface DemographicData {
+  type: 'gender' | 'age_group' | 'race';
+  value: string;
+  count: number;
+}
+
+function extractDemographics(text: string): DemographicData[] {
+  const demographics: DemographicData[] = [];
+  const lowerText = text.toLowerCase();
+
+  // Gender patterns
+  const genderPatterns = [
+    { regex: /(\d+)\s*(?:adult\s+)?men\b/gi, value: 'Male' },
+    { regex: /(\d+)\s*(?:adult\s+)?women\b/gi, value: 'Female' },
+    { regex: /(\d+)\s*(?:adult\s+)?males?\b/gi, value: 'Male' },
+    { regex: /(\d+)\s*(?:adult\s+)?females?\b/gi, value: 'Female' },
+    { regex: /(\d+)\s*(?:adult\s+)?boys?\b/gi, value: 'Male' },
+    { regex: /(\d+)\s*(?:adult\s+)?girls?\b/gi, value: 'Female' },
+  ];
+
+  for (const pattern of genderPatterns) {
+    let match;
+    while ((match = pattern.regex.exec(text)) !== null) {
+      const count = parseInt(match[1], 10);
+      if (count > 0 && count < 10000) {
+        // Check if we already have this gender, if so add to it
+        const existing = demographics.find(d => d.type === 'gender' && d.value === pattern.value);
+        if (existing) {
+          existing.count += count;
+        } else {
+          demographics.push({ type: 'gender', value: pattern.value, count });
+        }
+      }
+    }
+  }
+
+  // Also check for qualitative mentions without numbers
+  if (demographics.filter(d => d.type === 'gender').length === 0) {
+    if (lowerText.includes('men and women') || lowerText.includes('male and female')) {
+      // Can't determine counts, skip
+    } else if (lowerText.includes(' men ') || lowerText.includes(' males ') || lowerText.includes(' man ')) {
+      demographics.push({ type: 'gender', value: 'Male', count: 1 });
+    } else if (lowerText.includes(' women ') || lowerText.includes(' females ') || lowerText.includes(' woman ')) {
+      demographics.push({ type: 'gender', value: 'Female', count: 1 });
+    }
+  }
+
+  // Age group patterns
+  const agePatterns = [
+    { regex: /(\d+)\s*(?:minor|minors|children|child|kids?|juveniles?)\b/gi, value: 'Under 18' },
+    { regex: /(\d+)\s*(?:teenagers?|teens?)\b/gi, value: 'Under 18' },
+    { regex: /(\d+)\s*(?:young adults?|adults? in their (?:20s|twenties))\b/gi, value: '18-30' },
+    { regex: /(\d+)\s*(?:elderly|seniors?|older adults?)\b/gi, value: 'Over 60' },
+  ];
+
+  for (const pattern of agePatterns) {
+    let match;
+    while ((match = pattern.regex.exec(text)) !== null) {
+      const count = parseInt(match[1], 10);
+      if (count > 0 && count < 10000) {
+        const existing = demographics.find(d => d.type === 'age_group' && d.value === pattern.value);
+        if (existing) {
+          existing.count += count;
+        } else {
+          demographics.push({ type: 'age_group', value: pattern.value, count });
+        }
+      }
+    }
+  }
+
+  // Check for age mentions without numbers
+  if (demographics.filter(d => d.type === 'age_group').length === 0) {
+    if (lowerText.includes('minor') || lowerText.includes('child') || lowerText.includes('juvenile') || lowerText.includes('teen')) {
+      demographics.push({ type: 'age_group', value: 'Under 18', count: 1 });
+    }
+  }
+
+  // Race/Ethnicity patterns
+  const racePatterns = [
+    { regex: /(\d+)\s*(?:hispanic|latino|latina|latinx)\s*(?:immigrants?|migrants?|workers?|individuals?|people|persons?|men|women)?/gi, value: 'Hispanic/Latino' },
+    { regex: /(\d+)\s*mexican(?:s|\s+nationals?|\s+immigrants?|\s+migrants?|\s+citizens?)?/gi, value: 'Mexican' },
+    { regex: /(\d+)\s*guatemalan(?:s|\s+nationals?|\s+immigrants?)?/gi, value: 'Guatemalan' },
+    { regex: /(\d+)\s*salvadoran(?:s|\s+nationals?|\s+immigrants?)?/gi, value: 'Salvadoran' },
+    { regex: /(\d+)\s*honduran(?:s|\s+nationals?|\s+immigrants?)?/gi, value: 'Honduran' },
+    { regex: /(\d+)\s*venezuelan(?:s|\s+nationals?|\s+immigrants?)?/gi, value: 'Venezuelan' },
+    { regex: /(\d+)\s*cuban(?:s|\s+nationals?|\s+immigrants?)?/gi, value: 'Cuban' },
+    { regex: /(\d+)\s*chinese(?:\s+nationals?|\s+immigrants?)?/gi, value: 'Chinese' },
+    { regex: /(\d+)\s*indian(?:s|\s+nationals?|\s+immigrants?)?/gi, value: 'Indian' },
+    { regex: /(\d+)\s*haitian(?:s|\s+nationals?|\s+immigrants?)?/gi, value: 'Haitian' },
+    { regex: /(\d+)\s*brazilian(?:s|\s+nationals?|\s+immigrants?)?/gi, value: 'Brazilian' },
+    { regex: /(\d+)\s*colombian(?:s|\s+nationals?|\s+immigrants?)?/gi, value: 'Colombian' },
+    { regex: /(\d+)\s*ecuadorian(?:s|\s+nationals?|\s+immigrants?)?/gi, value: 'Ecuadorian' },
+    { regex: /(\d+)\s*nicaraguan(?:s|\s+nationals?|\s+immigrants?)?/gi, value: 'Nicaraguan' },
+  ];
+
+  for (const pattern of racePatterns) {
+    let match;
+    while ((match = pattern.regex.exec(text)) !== null) {
+      const count = parseInt(match[1], 10);
+      if (count > 0 && count < 10000) {
+        const existing = demographics.find(d => d.type === 'race' && d.value === pattern.value);
+        if (existing) {
+          existing.count += count;
+        } else {
+          demographics.push({ type: 'race', value: pattern.value, count });
+        }
+      }
+    }
+  }
+
+  // Check for nationality/ethnicity mentions without specific numbers
+  if (demographics.filter(d => d.type === 'race').length === 0) {
+    const ethnicityKeywords: Record<string, string> = {
+      'hispanic': 'Hispanic/Latino',
+      'latino': 'Hispanic/Latino',
+      'latina': 'Hispanic/Latino',
+      'mexican': 'Mexican',
+      'guatemalan': 'Guatemalan',
+      'salvadoran': 'Salvadoran',
+      'honduran': 'Honduran',
+      'venezuelan': 'Venezuelan',
+      'cuban': 'Cuban',
+      'chinese': 'Chinese',
+      'haitian': 'Haitian',
+      'brazilian': 'Brazilian',
+      'colombian': 'Colombian',
+    };
+
+    for (const [keyword, value] of Object.entries(ethnicityKeywords)) {
+      if (lowerText.includes(keyword)) {
+        demographics.push({ type: 'race', value, count: 1 });
+        break; // Only add one if no numbers found
+      }
+    }
+  }
+
+  return demographics;
+}
+
 const STATE_CODES: Record<string, string> = {
   'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
   'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
@@ -455,7 +594,12 @@ function parseRSSItems(xml: string): RSSItem[] {
   return items;
 }
 
-function parseItemToIncident(item: RSSItem): ParsedIncident | null {
+interface ParsedIncidentWithDemographics {
+  incident: ParsedIncident;
+  demographics: DemographicData[];
+}
+
+function parseItemToIncident(item: RSSItem): ParsedIncidentWithDemographics | null {
   const fullText = `${item.title} ${item.description || ''}`;
   const lowerText = fullText.toLowerCase();
 
@@ -479,6 +623,7 @@ function parseItemToIncident(item: RSSItem): ParsedIncident | null {
   const location = extractLocation(fullText);
   const numAffected = extractNumber(fullText);
   const incidentType = extractIncidentType(fullText);
+  const demographics = extractDemographics(fullText);
 
   // Parse date
   let incidentDate: string;
@@ -500,18 +645,21 @@ function parseItemToIncident(item: RSSItem): ParsedIncident | null {
     .substring(0, 500);
 
   return {
-    incident_date: incidentDate,
-    incident_type: incidentType,
-    description: cleanDescription,
-    location_name: null,
-    city: location.city,
-    state: location.state,
-    county: null,
-    latitude: location.lat,
-    longitude: location.lng,
-    num_affected: numAffected,
-    news_url: item.link,
-    source_name: item.source,
+    incident: {
+      incident_date: incidentDate,
+      incident_type: incidentType,
+      description: cleanDescription,
+      location_name: null,
+      city: location.city,
+      state: location.state,
+      county: null,
+      latitude: location.lat,
+      longitude: location.lng,
+      num_affected: numAffected,
+      news_url: item.link,
+      source_name: item.source,
+    },
+    demographics,
   };
 }
 
@@ -568,16 +716,16 @@ export async function POST() {
       });
     }
 
-    // Parse items into incidents
-    const incidents: ParsedIncident[] = [];
+    // Parse items into incidents with demographics
+    const parsedItems: ParsedIncidentWithDemographics[] = [];
     for (const item of items) {
-      const incident = parseItemToIncident(item);
-      if (incident) {
-        incidents.push(incident);
+      const parsed = parseItemToIncident(item);
+      if (parsed) {
+        parsedItems.push(parsed);
       }
     }
 
-    if (incidents.length === 0) {
+    if (parsedItems.length === 0) {
       return NextResponse.json({
         message: 'No relevant incidents found in articles',
         articlesFound: items.length,
@@ -596,21 +744,22 @@ export async function POST() {
     const existingUrls = new Set(existingIncidents?.map(i => i.news_url) || []);
 
     // Filter out duplicates
-    const newIncidents = incidents.filter(i => !existingUrls.has(i.news_url));
+    const newParsedItems = parsedItems.filter(p => !existingUrls.has(p.incident.news_url));
 
-    if (newIncidents.length === 0) {
+    if (newParsedItems.length === 0) {
       return NextResponse.json({
         message: 'All incidents already exist in database',
         articlesFound: items.length,
-        incidentsParsed: incidents.length,
+        incidentsParsed: parsedItems.length,
         incidentsAdded: 0,
       });
     }
 
     // Insert new incidents
+    const incidentsToInsert = newParsedItems.map(p => p.incident);
     const { data, error } = await supabase
       .from('incidents')
-      .insert(newIncidents)
+      .insert(incidentsToInsert)
       .select();
 
     if (error) {
@@ -621,12 +770,45 @@ export async function POST() {
       );
     }
 
+    // Insert demographics for each new incident
+    let demographicsAdded = 0;
+    if (data && data.length > 0) {
+      const demographicsToInsert: { incident_id: string; demographic_type: string; demographic_value: string; count: number }[] = [];
+
+      // Match inserted incidents with their demographics by news_url
+      for (const insertedIncident of data) {
+        const originalParsed = newParsedItems.find(p => p.incident.news_url === insertedIncident.news_url);
+        if (originalParsed && originalParsed.demographics.length > 0) {
+          for (const demo of originalParsed.demographics) {
+            demographicsToInsert.push({
+              incident_id: insertedIncident.id,
+              demographic_type: demo.type,
+              demographic_value: demo.value,
+              count: demo.count,
+            });
+          }
+        }
+      }
+
+      if (demographicsToInsert.length > 0) {
+        const { error: demoError } = await supabase
+          .from('incident_demographics')
+          .insert(demographicsToInsert);
+
+        if (demoError) {
+          console.error('Demographics insert error:', demoError);
+        } else {
+          demographicsAdded = demographicsToInsert.length;
+        }
+      }
+    }
+
     return NextResponse.json({
       message: 'Successfully fetched and added incidents from Google News',
       articlesFound: items.length,
-      incidentsParsed: incidents.length,
+      incidentsParsed: parsedItems.length,
       incidentsAdded: data?.length || 0,
-      newIncidents: data,
+      demographicsAdded,
     });
 
   } catch (error) {
