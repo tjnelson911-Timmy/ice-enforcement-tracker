@@ -3,6 +3,8 @@ import { Incident, INCIDENT_TYPE_COLORS, IncidentType } from '../lib/supabase/ty
 import Link from 'next/link';
 import UpdateStatsButton from '../components/update-stats-button';
 
+export const dynamic = 'force-dynamic';
+
 function cleanDescription(text: string): string {
   if (!text) return '';
   return text

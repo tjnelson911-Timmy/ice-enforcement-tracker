@@ -3,6 +3,8 @@ import { createServerClient } from './lib/supabase/server';
 import { Incident, INCIDENT_TYPE_COLORS, IncidentType } from './lib/supabase/types';
 import UpdateStatsButton from './components/update-stats-button';
 
+export const dynamic = 'force-dynamic';
+
 // Helper to clean HTML from descriptions
 function cleanDescription(text: string): string {
   if (!text) return '';
