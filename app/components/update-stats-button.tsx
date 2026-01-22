@@ -6,66 +6,51 @@ import { useRouter } from 'next/navigation';
 export default function UpdateStatsButton() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [result, setResult] = useState<{ success: boolean; message: string; count?: number } | null>(null);
-  const [source, setSource] = useState<'google' | 'newsapi'>('google');
+  const [result, setResult] = useState<{ success: boolean; message: string; details?: string } | null>(null);
   const router = useRouter();
 
   const handleUpdate = async () => {
     setIsUpdating(true);
     setResult(null);
 
+    let totalIncidents = 0;
+    let totalArticles = 0;
+    const errors: string[] = [];
+
     try {
-      if (source === 'google') {
-        // Use Google News (no API key required)
-        const response = await fetch('/api/news/google', {
-          method: 'POST',
-        });
+      // Fetch from Google News
+      const googleResponse = await fetch('/api/news/google', { method: 'POST' });
+      const googleData = await googleResponse.json();
 
-        const data = await response.json();
-
-        if (response.ok && !data.error) {
-          setResult({
-            success: true,
-            message: `Found ${data.articlesFound} articles, added ${data.incidentsAdded} new incidents`,
-            count: data.incidentsAdded,
-          });
-        } else {
-          setResult({
-            success: false,
-            message: data.error || 'Failed to fetch news',
-          });
-        }
+      if (googleResponse.ok && !googleData.error) {
+        totalArticles += googleData.articlesFound || 0;
+        totalIncidents += googleData.incidentsAdded || 0;
       } else {
-        // Use NewsAPI (requires API key)
-        const apiKey = localStorage.getItem('newsapi_key');
+        errors.push(`Google News: ${googleData.error || 'Failed'}`);
+      }
 
-        if (apiKey) {
-          const response = await fetch('/api/news/fetch', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ apiKey }),
-          });
+      // Fetch from NewsAPI
+      const newsapiResponse = await fetch('/api/news/fetch', { method: 'POST' });
+      const newsapiData = await newsapiResponse.json();
 
-          const data = await response.json();
+      if (newsapiResponse.ok && !newsapiData.error) {
+        totalArticles += newsapiData.articlesFound || 0;
+        totalIncidents += newsapiData.incidentsAdded || 0;
+      } else {
+        errors.push(`NewsAPI: ${newsapiData.error || 'Failed'}`);
+      }
 
-          if (response.ok && !data.error) {
-            setResult({
-              success: true,
-              message: `Found ${data.articlesFound} articles, added ${data.incidentsAdded} new incidents`,
-              count: data.incidentsAdded,
-            });
-          } else {
-            setResult({
-              success: false,
-              message: data.error || 'Failed to fetch news',
-            });
-          }
-        } else {
-          setResult({
-            success: false,
-            message: 'No API key configured. Visit Admin > Fetch News to set up.',
-          });
-        }
+      if (totalIncidents > 0 || errors.length === 0) {
+        setResult({
+          success: true,
+          message: `Found ${totalArticles} articles, added ${totalIncidents} new incidents`,
+          details: errors.length > 0 ? errors.join('; ') : undefined,
+        });
+      } else {
+        setResult({
+          success: false,
+          message: errors.join('; ') || 'Failed to fetch news',
+        });
       }
 
       // Refresh the page data
@@ -107,72 +92,25 @@ export default function UpdateStatsButton() {
               </div>
             </div>
 
-            {/* Source Selection */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Select Source:</label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setSource('google')}
-                  className={`p-3 rounded-lg border-2 text-left transition-all ${
-                    source === 'google'
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">🔍</span>
-                    <span className="font-semibold text-gray-900">Google News</span>
-                  </div>
-                  <p className="text-xs text-gray-500">No API key needed. Searches all news sources including local stations.</p>
-                </button>
-                <button
-                  onClick={() => setSource('newsapi')}
-                  className={`p-3 rounded-lg border-2 text-left transition-all ${
-                    source === 'newsapi'
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">📰</span>
-                    <span className="font-semibold text-gray-900">NewsAPI</span>
-                  </div>
-                  <p className="text-xs text-gray-500">Requires API key. Major national outlets only.</p>
-                </button>
-              </div>
-            </div>
-
             {result && (
               <div className={`mb-4 p-4 rounded-lg ${result.success ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
                 <p className={`text-sm ${result.success ? 'text-green-700' : 'text-yellow-700'}`}>
                   {result.message}
                 </p>
-                {result.success && result.count !== undefined && result.count > 0 && (
-                  <p className="text-sm font-semibold text-green-800 mt-1">
-                    +{result.count} new incidents added!
-                  </p>
+                {result.details && (
+                  <p className="text-xs text-gray-500 mt-1">{result.details}</p>
                 )}
               </div>
             )}
 
             <div className="bg-gray-50 rounded-lg p-4 mb-4">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                {source === 'google' ? 'Google News searches:' : 'NewsAPI sources:'}
-              </h4>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">Sources:</h4>
               <div className="flex flex-wrap gap-1">
-                {source === 'google' ? (
-                  ['All Local News', 'National Media', 'Regional Papers', 'TV Stations', 'Online News'].map((s) => (
-                    <span key={s} className="px-2 py-0.5 bg-white rounded text-xs text-gray-600 border">
-                      {s}
-                    </span>
-                  ))
-                ) : (
-                  ['CNN', 'Fox News', 'ABC', 'CBS', 'NBC', 'AP', 'Reuters', 'WaPo'].map((s) => (
-                    <span key={s} className="px-2 py-0.5 bg-white rounded text-xs text-gray-600 border">
-                      {s}
-                    </span>
-                  ))
-                )}
+                {['Google News', 'NewsAPI', 'CNN', 'Fox', 'ABC', 'CBS', 'NBC', 'AP', 'Reuters'].map((s) => (
+                  <span key={s} className="px-2 py-0.5 bg-white rounded text-xs text-gray-600 border">
+                    {s}
+                  </span>
+                ))}
               </div>
             </div>
 
@@ -213,17 +151,6 @@ export default function UpdateStatsButton() {
                 )}
               </button>
             </div>
-
-            {source === 'newsapi' && (
-              <p className="text-xs text-gray-400 mt-3 text-center">
-                No API key? <a href="/admin/news-fetch" className="text-blue-500 hover:underline">Configure in Admin</a>
-              </p>
-            )}
-            {source === 'google' && (
-              <p className="text-xs text-gray-400 mt-3 text-center">
-                Google News provides broader coverage including local stations
-              </p>
-            )}
           </div>
         </div>
       )}

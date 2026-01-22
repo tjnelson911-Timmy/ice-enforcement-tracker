@@ -327,13 +327,14 @@ async function fetchNewsFromAPI(apiKey: string): Promise<NewsArticle[]> {
   return allArticles;
 }
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
-    const { apiKey } = await request.json();
+    // Use environment variable for API key
+    const apiKey = process.env.NEWSAPI_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'NewsAPI key is required' },
+        { error: 'NewsAPI key not configured' },
         { status: 400 }
       );
     }
