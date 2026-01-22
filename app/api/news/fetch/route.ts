@@ -253,6 +253,9 @@ async function fetchNewsFromAPI(apiKey: string): Promise<NewsArticle[]> {
   const allArticles: NewsArticle[] = [];
   const seenUrls = new Set<string>();
 
+  // Start date: January 20, 2025 (Trump inauguration)
+  const fromDate = '2025-01-20';
+
   // Primary queries for national sources
   const primaryQueries = SEARCH_QUERIES.slice(0, 8);
   // Additional queries for broader search (local news)
@@ -271,6 +274,7 @@ async function fetchNewsFromAPI(apiKey: string): Promise<NewsArticle[]> {
         `https://newsapi.org/v2/everything?` +
         `q=${encodeURIComponent(query)}&` +
         `sources=${NEWS_SOURCES.join(',')}&` +
+        `from=${fromDate}&` +
         `sortBy=publishedAt&` +
         `pageSize=100&` +
         `apiKey=${apiKey}`
@@ -301,6 +305,7 @@ async function fetchNewsFromAPI(apiKey: string): Promise<NewsArticle[]> {
         `https://newsapi.org/v2/everything?` +
         `q=${encodeURIComponent(query)}&` +
         `language=en&` +
+        `from=${fromDate}&` +
         `sortBy=publishedAt&` +
         `pageSize=100&` +
         `apiKey=${apiKey}`

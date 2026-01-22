@@ -13,9 +13,13 @@ export default function TimelinePlayer({ incidents, onDateChange }: TimelinePlay
   const [currentIndex, setCurrentIndex] = useState(0);
   const [speed, setSpeed] = useState(500); // Default to 2x speed
 
+  // Start date: January 20, 2025 (Trump inauguration)
+  const START_DATE = new Date('2025-01-20');
+
   const sortedDates = useMemo(() => {
     return [...new Set(
       incidents
+        .filter((i) => new Date(i.incident_date) >= START_DATE)
         .map((i) => i.incident_date)
         .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
     )];

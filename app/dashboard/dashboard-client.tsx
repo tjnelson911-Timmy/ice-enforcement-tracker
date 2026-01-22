@@ -144,7 +144,7 @@ export default function DashboardClient({ incidents, demographics }: DashboardCl
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">ICE Enforcement Tracker</h1>
-            <p className="text-gray-600">Tracking immigration enforcement actions across the United States</p>
+            <p className="text-gray-600">Tracking enforcement actions since January 20, 2025</p>
           </div>
           <UpdateStatsButton />
         </div>
