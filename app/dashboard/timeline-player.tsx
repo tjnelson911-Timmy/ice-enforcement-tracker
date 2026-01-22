@@ -13,8 +13,8 @@ export default function TimelinePlayer({ incidents, onDateChange }: TimelinePlay
   const [currentIndex, setCurrentIndex] = useState(0);
   const [speed, setSpeed] = useState(500); // Default to 2x speed
 
-  // Start date: January 20, 2025 (Trump inauguration)
-  const START_DATE = new Date('2025-01-20');
+  // Start date: September 1, 2025
+  const START_DATE = new Date('2025-09-01');
 
   const sortedDates = useMemo(() => {
     return [...new Set(

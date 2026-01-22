@@ -253,8 +253,8 @@ async function fetchNewsFromAPI(apiKey: string): Promise<NewsArticle[]> {
   const allArticles: NewsArticle[] = [];
   const seenUrls = new Set<string>();
 
-  // Start date: January 20, 2025 (Trump inauguration)
-  const fromDate = '2025-01-20';
+  // Start date: September 1, 2025
+  const fromDate = '2025-09-01';
 
   // Primary queries for national sources
   const primaryQueries = SEARCH_QUERIES.slice(0, 8);

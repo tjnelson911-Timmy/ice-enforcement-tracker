@@ -291,8 +291,8 @@ export async function POST() {
     const seenUrls = new Set<string>();
     let totalArchiveUrls = 0;
 
-    // Date range: January 20, 2025 to now
-    const fromDate = '20250120';
+    // Date range: September 1, 2025 to now
+    const fromDate = '20250901';
     const toDate = new Date().toISOString().slice(0, 10).replace(/-/g, '');
 
     console.log(`Searching archives from ${fromDate} to ${toDate}`);
@@ -384,7 +384,7 @@ export async function POST() {
 export async function GET() {
   return NextResponse.json({
     message: 'POST to this endpoint to fetch historical ICE enforcement news from web archives',
-    dateRange: 'January 20, 2025 to present',
+    dateRange: 'September 1, 2025 to present',
     sources: NEWS_SITES,
   });
 }
