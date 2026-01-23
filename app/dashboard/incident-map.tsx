@@ -26,7 +26,7 @@ export default function IncidentMap({ incidents, selectedIncident, onSelectIncid
   const handleMapLoad = useCallback(() => {
     // Zoom out more on mobile so all dots are visible
     if (window.innerWidth < 768 && mapRef.current) {
-      mapRef.current.setZoom(2.0);
+      mapRef.current.setZoom(1.0);
     }
   }, []);
 
