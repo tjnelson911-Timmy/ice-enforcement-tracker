@@ -68,7 +68,7 @@ export default async function HomePage() {
   const statesCount = new Set(allIncidents.map(i => i.state).filter(Boolean)).size;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-blue-800 text-white relative overflow-hidden">
         {/* Background pattern */}
@@ -170,15 +170,15 @@ export default async function HomePage() {
       </div>
 
       {/* Recent Incidents */}
-      <div className="max-w-7xl mx-auto px-4 py-16">
-        <div className="flex items-center justify-between mb-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:py-16 overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">Recent Incidents</h2>
-            <p className="text-gray-500 mt-1">Latest enforcement actions reported</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Recent Incidents</h2>
+            <p className="text-gray-500 mt-1 text-sm sm:text-base">Latest enforcement actions reported</p>
           </div>
           <Link
             href="/incidents"
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-sm sm:text-base"
           >
             View all
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,24 +187,24 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {incidents.map((incident) => (
             <Link
               key={incident.id}
               href={`/incidents/${incident.id}`}
-              className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all p-6 border border-gray-100 group"
+              className="bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all p-4 sm:p-6 border border-gray-100 group overflow-hidden"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
+              <div className="flex items-start justify-between mb-3 sm:mb-4 gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                   <div
-                    className="w-3 h-3 rounded-full"
+                    className="w-3 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: INCIDENT_TYPE_COLORS[incident.incident_type as IncidentType] || '#6B7280' }}
                   />
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide truncate">
                     {incident.incident_type}
                   </span>
                 </div>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-gray-400 flex-shrink-0">
                   {new Date(incident.incident_date).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
@@ -213,27 +213,27 @@ export default async function HomePage() {
                 </span>
               </div>
 
-              <h3 className="font-semibold text-gray-900 text-lg mb-2 group-hover:text-blue-600 transition-colors">
+              <h3 className="font-semibold text-gray-900 text-base sm:text-lg mb-2 group-hover:text-blue-600 transition-colors break-words">
                 {incident.city ? `${incident.city}, ${incident.state}` : incident.state || 'Location Unknown'}
               </h3>
 
               {incident.description && (
-                <p className="text-sm text-gray-500 line-clamp-2 mb-4">
+                <p className="text-sm text-gray-500 line-clamp-2 mb-3 sm:mb-4 break-words">
                   {cleanDescription(incident.description)}
                 </p>
               )}
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-gray-100 gap-2">
                 {incident.num_affected ? (
-                  <span className="text-sm font-semibold text-red-600">
-                    {incident.num_affected} people affected
+                  <span className="text-xs sm:text-sm font-semibold text-red-600 flex-shrink-0">
+                    {incident.num_affected} affected
                   </span>
                 ) : (
-                  <span className="text-sm text-gray-400">Details in report</span>
+                  <span className="text-xs sm:text-sm text-gray-400">Details in report</span>
                 )}
 
                 {incident.source_name && (
-                  <span className="text-xs text-gray-400 truncate max-w-[120px]">
+                  <span className="text-xs text-gray-400 truncate max-w-[100px] sm:max-w-[120px]">
                     {incident.source_name}
                   </span>
                 )}
