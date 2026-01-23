@@ -26,7 +26,7 @@ export default function IncidentMap({ incidents, selectedIncident, onSelectIncid
   const handleMapLoad = useCallback(() => {
     // Zoom out more on mobile so all dots are visible
     if (window.innerWidth < 768 && mapRef.current) {
-      mapRef.current.setZoom(1.0);
+      mapRef.current.setZoom(1.5);
     }
   }, []);
 
@@ -121,7 +121,7 @@ export default function IncidentMap({ incidents, selectedIncident, onSelectIncid
         initialViewState={{
           longitude: -98.5795,
           latitude: 39.8283,
-          zoom: 3.5,
+          zoom: 4.0,
         }}
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/light-v11"
