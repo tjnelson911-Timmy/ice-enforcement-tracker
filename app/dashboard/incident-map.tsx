@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Map, { Marker, Popup, Source, Layer, type MapRef } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Incident, INCIDENT_TYPE_COLORS } from '../lib/supabase/types';
@@ -14,6 +14,21 @@ interface IncidentMapProps {
 export default function IncidentMap({ incidents, selectedIncident, onSelectIncident }: IncidentMapProps) {
   const mapRef = useRef<MapRef>(null);
   const [viewMode, setViewMode] = useState<'markers' | 'heatmap'>('markers');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleMapLoad = useCallback(() => {
+    // Zoom out more on mobile so all dots are visible
+    if (window.innerWidth < 768 && mapRef.current) {
+      mapRef.current.setZoom(2.5);
+    }
+  }, []);
 
   const validIncidents = incidents.filter(
     (i) => i.latitude !== null && i.longitude !== null
@@ -111,6 +126,7 @@ export default function IncidentMap({ incidents, selectedIncident, onSelectIncid
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/light-v11"
         onClick={() => onSelectIncident(null)}
+        onLoad={handleMapLoad}
       >
         {viewMode === 'heatmap' ? (
           <Source id="incidents" type="geojson" data={geojsonData}>
