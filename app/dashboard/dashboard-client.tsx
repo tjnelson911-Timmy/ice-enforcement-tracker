@@ -16,6 +16,34 @@ interface DashboardClientProps {
   demographics: IncidentDemographic[];
 }
 
+// Expandable chart wrapper component
+function ExpandableChart({ children }: { children: React.ReactNode }) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <>
+      {/* Backdrop when expanded */}
+      {isHovered && (
+        <div
+          className="fixed inset-0 bg-black/30 z-40"
+          onMouseEnter={() => setIsHovered(false)}
+        />
+      )}
+      <div
+        className={`relative transition-all duration-300 ease-out ${
+          isHovered
+            ? 'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] sm:w-[50vw] h-[50vh] z-50 shadow-2xl'
+            : ''
+        }`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {children}
+      </div>
+    </>
+  );
+}
+
 export default function DashboardClient({ incidents, demographics }: DashboardClientProps) {
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [selectedType, setSelectedType] = useState<IncidentType | 'all'>('all');
@@ -284,7 +312,9 @@ export default function DashboardClient({ incidents, demographics }: DashboardCl
             />
           </div>
           <div className="space-y-4">
-            <ActionTypeChart incidents={filteredIncidents} />
+            <ExpandableChart>
+              <ActionTypeChart incidents={filteredIncidents} />
+            </ExpandableChart>
           </div>
         </div>
 
@@ -298,13 +328,19 @@ export default function DashboardClient({ incidents, demographics }: DashboardCl
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <IncidentsOverTime incidents={filteredIncidents} />
-          <StateBreakdownChart incidents={filteredIncidents} />
-          <DemographicsChart
-            demographics={filteredDemographics}
-            type="race"
-            title="Race/Ethnicity"
-          />
+          <ExpandableChart>
+            <IncidentsOverTime incidents={filteredIncidents} />
+          </ExpandableChart>
+          <ExpandableChart>
+            <StateBreakdownChart incidents={filteredIncidents} />
+          </ExpandableChart>
+          <ExpandableChart>
+            <DemographicsChart
+              demographics={filteredDemographics}
+              type="race"
+              title="Race/Ethnicity"
+            />
+          </ExpandableChart>
         </div>
       </div>
     </div>
